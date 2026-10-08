@@ -18,7 +18,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
   const customProviders = useSettingsStore((s) => s.customProviders)
   const [presetId, setPresetId] = useState('unorouter')
   const [apiKey, setApiKey] = useState('')
-  const [customModel, setCustomModel] = useState('')
+  const [customModel, setCustomModel] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [checkingRouter, setCheckingRouter] = useState(false)
   const [routerModels, setRouterModels] = useState<string[] | null>(null)
@@ -29,7 +29,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
   const switchPreset = (value: string | null) => {
     if (!value) return
     setPresetId(value)
-    setCustomModel('')
+    setCustomModel(null)
     setApiKey('')
     setRouterModels(null)
     setRouterConnections(null)
@@ -62,14 +62,14 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
       const patch = buildQuickApiProviderPatch({
         preset,
         apiKey,
-        modelId: customModel || preset.defaultModel,
+        modelId: customModel === null ? preset.defaultModel : customModel,
         discoveredModels: preset.id === '9router-local' && importRouterModels ? routerModels ?? [] : [],
         providers:
         customProviders,
       })
       setSettings(patch)
       setApiKey('')
-      setCustomModel('')
+      setCustomModel(null)
       setRouterModels(null)
       setRouterConnections(null)
       setError('')
@@ -107,7 +107,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
           <TextInput
             label={t('Modelo inicial')}
             description={t('Opcional cambiarlo; verificá el ID gratuito en el catálogo.')}
-            value={customModel || preset.defaultModel || ''}
+            value={customModel ?? preset.defaultModel ?? ''}
             onChange={(e) => setCustomModel(e.currentTarget.value)}
           />
         )}

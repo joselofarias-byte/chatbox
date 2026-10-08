@@ -83,6 +83,24 @@ describe('provider API request routing', () => {
     expect(rendererFetch).not.toHaveBeenCalled()
   })
 
+  it('routes a remote OpenAI-compatible API directly through native Android networking without CORS proxy', async () => {
+    mocks.platform.type = 'mobile'
+    const response = new Response('ok')
+    mocks.mobileRequest.mockResolvedValue(response)
+    const rendererFetch = vi.fn()
+    vi.stubGlobal('fetch', rendererFetch)
+    await expect(
+      apiRequest.get('https://api.unorouter.com/v1/models', { Authorization: 'Bearer test' }, {
+        retry: 0,
+        useProxy: false,
+      })
+    ).resolves.toBe(response)
+    expect(mocks.mobileRequest).toHaveBeenCalledWith(
+      'https://api.unorouter.com/v1/models', 'GET', expect.any(Headers), undefined, undefined
+    )
+    expect(rendererFetch).not.toHaveBeenCalled()
+  })
+
   it('sends local model streaming to the Android native transport', async () => {
     mocks.platform.type = 'mobile'
     const response = new Response('ok')
