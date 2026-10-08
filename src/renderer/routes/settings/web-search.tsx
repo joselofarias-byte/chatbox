@@ -178,7 +178,7 @@ export function RouteComponent() {
           )}
         </Text>
       )}
-      {extension.webSearch.provider === 'searxng' && (
+      {(extension.webSearch.provider === 'searxng' || extension.webSearch.provider === 'auto-free') && (
         <Stack gap="xs">
           <Text fw="600">{t('SearXNG Instance URL')}</Text>
           <Flex align="center" gap="xs">
