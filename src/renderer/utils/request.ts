@@ -65,7 +65,10 @@ async function doRequest(url: string, options: RequestOptions): Promise<Response
 
   const makeRequest = async () => {
     let res: Response
-    if (platform.type === 'mobile' && useProxy) {
+    // Android WebView cannot reliably fetch loopback HTTP due to CORS and
+    // mixed-content restrictions; use the native transport for local/LAN models
+    // even if the provider was configured without a proxy option.
+    if (platform.type === 'mobile' && (useProxy || isLocalHost(url))) {
       res = await handleMobileRequest(requestUrl, method, headers, body, signal)
     } else if (platform.type === 'desktop' && useProxy && !isLocalHost(url)) {
       res = await desktopDirectRequestFromWindow(requestUrl, method, headers, body, signal)

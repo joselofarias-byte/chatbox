@@ -62,6 +62,48 @@ describe('provider API request routing', () => {
     expect(mocks.desktopDirectRequest).not.toHaveBeenCalled()
   })
 
+  it('routes local 9router requests through Android native networking even without a proxy flag', async () => {
+    mocks.platform.type = 'mobile'
+    const response = new Response('ok')
+    mocks.mobileRequest.mockResolvedValue(response)
+    const rendererFetch = vi.fn()
+    vi.stubGlobal('fetch', rendererFetch)
+
+    await expect(apiRequest.get('http://127.0.0.1:20130/v1/models?scope=connected', {
+      Authorization: 'Bearer test-key',
+    }, { retry: 0 })).resolves.toBe(response)
+
+    expect(mocks.mobileRequest).toHaveBeenCalledWith(
+      'http://127.0.0.1:20130/v1/models?scope=connected',
+      'GET',
+      expect.any(Headers),
+      undefined,
+      undefined
+    )
+    expect(rendererFetch).not.toHaveBeenCalled()
+  })
+
+  it('sends local model streaming to the Android native transport', async () => {
+    mocks.platform.type = 'mobile'
+    const response = new Response('ok')
+    mocks.mobileRequest.mockResolvedValue(response)
+    const rendererFetch = vi.fn()
+    vi.stubGlobal('fetch', rendererFetch)
+
+    await expect(apiRequest.post('http://localhost:20130/v1/chat/completions', {
+      Authorization: 'Bearer test-key',
+    }, '{"model":"free-best","stream":true}', { retry: 0 })).resolves.toBe(response)
+
+    expect(mocks.mobileRequest).toHaveBeenCalledWith(
+      'http://localhost:20130/v1/chat/completions',
+      'POST',
+      expect.any(Headers),
+      '{"model":"free-best","stream":true}',
+      undefined
+    )
+    expect(rendererFetch).not.toHaveBeenCalled()
+  })
+
   it('preserves the ApiError contract for failed desktop direct responses', async () => {
     mocks.desktopDirectRequest.mockResolvedValue(new Response('upstream unavailable', { status: 503 }))
 
