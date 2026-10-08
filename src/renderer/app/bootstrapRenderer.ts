@@ -2,12 +2,7 @@ import type { Settings } from '@shared/types'
 import i18n from '@/i18n'
 import { getLogger } from '@/lib/utils'
 import platform from '@/platform'
-import { router } from '@/router'
 import { initSessionPresentationBindings } from '@/session-bootstrap'
-import { initGoogleAnalyticsTracking } from '@/setup/ga_init'
-import { initJkTracking } from '@/setup/jk_analytics_init'
-import { initPlausibleTracking } from '@/setup/plausible_init'
-import { initSentry } from '@/setup/sentry_init'
 import { initSessionAttachmentRagMaintenance } from '@/setup/session_attachment_rag_maintenance'
 import { initLastUsedModelStore } from '@/stores/lastUsedModelStore'
 import * as migration from '@/stores/migration'
@@ -35,13 +30,9 @@ export async function initializeRenderer(): Promise<void> {
     migrationError = error
   }
 
-  // Migrate persisted consent before any settings-backed telemetry initializes.
-  await initSentry()
-  void initGoogleAnalyticsTracking()
-  void initPlausibleTracking((onResolved) => {
-    router.subscribe('onResolved', ({ hrefChanged }) => onResolved(hrefChanged))
-  })
-  void initJkTracking()
+  // Upstream analytics/error-reporting initializers are intentionally not started
+  // in this fork. Local logging remains available without vendor telemetry.
+
 
   if (migrationError !== undefined) {
     const migrationErrorContext = getMigrationErrorContext(migrationError)
