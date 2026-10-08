@@ -43,6 +43,21 @@ export default function ProviderIcon(props: { className?: string; size?: number;
     return <ZhipuColor className={className} size={size} />
   }
 
+  if (provider === ModelProviderEnum.Experiential) {
+    return (
+      <svg
+        className={className}
+        style={{ width: size, height: size }}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+        <path d="M8 8h8M8 12h6M8 16h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    )
+  }
+
   return (
     <svg
       className={className}
