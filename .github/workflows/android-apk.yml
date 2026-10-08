@@ -6,6 +6,7 @@ on:
     branches:
       - feat/community-plus-bootstrap-20261007
       - feat/free-web-search-20261008
+      - feat/quick-api-presets-20261008
     paths:
       - 'src/**'
       - 'packages/**'
@@ -58,6 +59,9 @@ jobs:
 
       - name: Verify personal free web-search tools
         run: pnpm exec vitest run src/renderer/packages/web-search/auto-free.test.ts src/renderer/packages/web-search/duckduckgo.test.ts src/renderer/packages/web-search/index.test.ts src/renderer/packages/web-search/parse-link-consistency.test.ts src/shared/services/native-web-search.test.ts packages/chatbox-core/src/domain/settings/settings-migrations.test.ts
+
+      - name: Verify quick API provider presets
+        run: pnpm exec vitest run src/renderer/components/settings/provider/quick-api-presets.test.ts
 
       - name: Build mobile renderer
         shell: bash
