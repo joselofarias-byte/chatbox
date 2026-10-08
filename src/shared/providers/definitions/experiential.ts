@@ -4,7 +4,7 @@ import Experiential from './models/experiential'
 
 const DEFAULT_MODELS = [
   {
-    modelId: 'hauhaucs/qwen3.8-27b-uncensored:free',
+    modelId: 'qwen3.8-27b-uncensored',
     nickname: 'Qwen3.8 27B Uncensored (Free)',
   },
 ]
