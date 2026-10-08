@@ -66,8 +66,15 @@ This follows the useful release-build pattern found in `chatbox-plus` without co
    - Chatbox cloud/account UI decoupling;
    - branding/package identity.
 4. Add a first-class OpenAI-compatible preset for Experiential Labs while retaining generic custom providers.
-5. Review whether current upstream already supersedes the DeepSeek reasoning/tool grouping changes from ChatPlus before porting them.
+5. DeepSeek/reasoning review: current upstream already has dedicated reasoning-effort controls, `reasoning_content` handling, provider tests and newer tool-call orchestration. Do **not** port the older ChatPlus reasoning/tool grouping patches wholesale.
 6. Keep GPLv3 notices and upstream attribution intact in distributed builds.
+
+## Additional implementation completed
+
+- Added `Experiential Labs` as a first-class OpenAI-compatible provider with remote `/models` discovery and the existing free Qwen model as a convenience default.
+- Disabled upstream runtime telemetry in fork builds by removing GA/Plausible script loading and skipping renderer telemetry startup.
+- Replaced main-process GA/Sentry reporting with no-op compatibility surfaces.
+- Disabled the official Chatbox auto-update feeds and removed the official R2 publish destination from the fork packaging config.
 
 ## Attribution
 
