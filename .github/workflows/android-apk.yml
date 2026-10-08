@@ -1,0 +1,87 @@
+name: Android test APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feat/community-plus-bootstrap-20261007
+    paths:
+      - 'src/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'capacitor.config.ts'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 35
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Android project
+        shell: bash
+        run: |
+          mkdir -p release/app/dist/renderer
+          pnpm exec cap add android
+
+      - name: Build mobile renderer and sync Capacitor
+        run: pnpm run mobile:sync:android
+
+      - name: Build installable debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Collect APK
+        shell: bash
+        run: |
+          mkdir -p dist-apk
+          sha="${GITHUB_SHA::7}"
+          apk="$(find android/app/build/outputs/apk/debug -type f -name '*.apk' | head -n 1)"
+          test -n "$apk"
+          cp "$apk" "dist-apk/chatbox-fork-${sha}-debug.apk"
+          ls -lh dist-apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatbox-fork-android-debug
+          path: dist-apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
