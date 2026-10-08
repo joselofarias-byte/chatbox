@@ -1,4 +1,5 @@
 import { ModelProviderType, type Settings } from '@shared/types'
+import { buildLocalRouterModelsURL } from './quick-api-router-probe'
 
 /** Catalog of connection shortcuts, not a list of verified/free API credits. */
 export type QuickApiPreset = {
@@ -80,6 +81,7 @@ export function buildQuickApiProviderPatch(params: {
   apiKey: string
   modelId?: string
   discoveredModels?: readonly string[]
+  apiHostOverride?: string
   providers: Settings['providers'] | undefined
   customProviders: Settings['customProviders'] | undefined
 }): Partial<Settings> {
@@ -91,6 +93,12 @@ export function buildQuickApiProviderPatch(params: {
   if (!known || known.providerId !== preset.providerId) throw new Error('Proveedor desconocido.')
   const modelId = (params.modelId ?? preset.defaultModel ?? '').trim()
   const custom = Boolean(preset.apiHost)
+  const apiHost = preset.id === '9router-local'
+    ? params.apiHostOverride?.trim() || preset.apiHost
+    : preset.apiHost
+  // A port override is supported only for loopback; never leak this credential
+  // to arbitrary remote hosts or userinfo-bearing URLs.
+  if (preset.id === '9router-local' && apiHost) buildLocalRouterModelsURL(apiHost)
   if (custom && !modelId) throw new Error('El identificador del modelo es obligatorio para este proveedor.')
   const currentProviders = customProviders ?? []
   const collision = currentProviders.find((p) => p.id === preset.providerId)
@@ -112,7 +120,7 @@ export function buildQuickApiProviderPatch(params: {
   const nextSettings = {
     ...current,
     apiKey,
-    ...(preset.apiHost ? { apiHost: preset.apiHost } : {}),
+    ...(apiHost ? { apiHost } : {}),
     ...(custom ? { models: [...(current.models ?? []), ...appendedModels] } : {}),
   }
   if (!custom) return { providers: { ...providers, [preset.providerId]: nextSettings } }

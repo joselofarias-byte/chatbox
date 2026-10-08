@@ -81,6 +81,19 @@ describe('quick API provider presets', () => {
     expect(patch.providers?.[preset.providerId]?.apiKey).toBe('my-router-key')
   })
 
+  it('supports isolated local-router testing on another port without allowing remote credential exfiltration', () => {
+    const preset = getPreset('9router-local')
+    const patch = buildQuickApiProviderPatch({
+      preset, apiKey: 'my-key', providers: {}, customProviders: [],
+      apiHostOverride: 'http://127.0.0.1:20131/v1',
+    })
+    expect(patch.providers?.[preset.providerId]?.apiHost).toBe('http://127.0.0.1:20131/v1')
+    expect(() => buildQuickApiProviderPatch({
+      preset, apiKey: 'my-key', providers: {}, customProviders: [],
+      apiHostOverride: 'https://malicious.example/v1',
+    })).toThrow('solo se permite')
+  })
+
   it('refuses blank keys and collisions with different custom providers', () => {
     expect(() => buildQuickApiProviderPatch({
       preset: getPreset('openrouter'),

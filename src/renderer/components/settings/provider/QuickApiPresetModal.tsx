@@ -21,6 +21,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
   const [customModel, setCustomModel] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [checkingRouter, setCheckingRouter] = useState(false)
+  const [routerApiHost, setRouterApiHost] = useState('http://127.0.0.1:20130/v1')
   const [routerModels, setRouterModels] = useState<string[] | null>(null)
   const [routerConnections, setRouterConnections] = useState<number | null>(null)
   const [importRouterModels, setImportRouterModels] = useState(true)
@@ -31,6 +32,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
     setPresetId(value)
     setCustomModel(null)
     setApiKey('')
+    setRouterApiHost('http://127.0.0.1:20130/v1')
     setRouterModels(null)
     setRouterConnections(null)
     setError('')
@@ -42,7 +44,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
     setRouterModels(null)
     setError('')
     try {
-      const result = await readConnectedRouterModels(preset.apiHost, apiKey, apiRequest.get)
+      const result = await readConnectedRouterModels(routerApiHost, apiKey, apiRequest.get)
       setRouterModels(result.models)
       setRouterConnections(result.connectionCount)
     } catch (cause) {
@@ -63,6 +65,7 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
         preset,
         apiKey,
         modelId: customModel === null ? preset.defaultModel : customModel,
+        apiHostOverride: preset.id === '9router-local' ? routerApiHost : undefined,
         discoveredModels: preset.id === '9router-local' && importRouterModels ? routerModels ?? [] : [],
         providers:
         customProviders,
@@ -113,6 +116,12 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
         )}
         {preset.id === '9router-local' && (
           <Stack gap="xs">
+            <TextInput
+              label="Endpoint local de 9router"
+              description="20130 es el habitual; usá 20131 para probar otra instancia sin reemplazar la estable."
+              value={routerApiHost}
+              onChange={(e) => { setRouterApiHost(e.currentTarget.value); setRouterModels(null); setRouterConnections(null) }}
+            />
             <Text size="xs" c="dimmed">
               Solo necesitás la clave de cliente generada en 9router-go → Endpoint; las claves de los demás proveedores quedan allí.
             </Text>
@@ -136,7 +145,8 @@ export function QuickApiPresetModal({ opened, onClose }: Props) {
           </Stack>
         )}
         <Text size="xs" c="dimmed">{preset.notes}</Text>
-        {preset.apiHost && <Text size="xs" c="dimmed">Endpoint: {preset.apiHost}</Text>}
+        {preset.apiHost && preset.id !== '9router-local' &&
+          <Text size="xs" c="dimmed">Endpoint: {preset.apiHost}</Text>}
         <Anchor href={preset.website} target="_blank" rel="noreferrer" size="sm">
           {t('Ver sitio y obtener clave')}
         </Anchor>
