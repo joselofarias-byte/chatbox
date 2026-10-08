@@ -65,7 +65,11 @@ async function doRequest(url: string, options: RequestOptions): Promise<Response
 
   const makeRequest = async () => {
     let res: Response
-    if (platform.type === 'mobile' && useProxy) {
+    // Android WebView can reject BOTH loopback HTTP and remote HTTPS providers
+    // under CORS/mixed-content rules. Mobile inference always uses the native
+    // network transport regardless of provider proxy preferences; this bypasses
+    // the commercial Chatbox CORS relay while preserving streaming.
+    if (platform.type === 'mobile') {
       res = await handleMobileRequest(requestUrl, method, headers, body, signal)
     } else if (platform.type === 'desktop' && useProxy && !isLocalHost(url)) {
       res = await desktopDirectRequestFromWindow(requestUrl, method, headers, body, signal)

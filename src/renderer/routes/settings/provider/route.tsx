@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { AddProviderModal } from '@/components/settings/provider/AddProviderModal'
 import { ImportProviderModal } from '@/components/settings/provider/ImportProviderModal'
 import { ProviderList } from '@/components/settings/provider/ProviderList'
+import { QuickApiPresetModal } from '@/components/settings/provider/QuickApiPresetModal'
 import ProviderSpotlight, { providerSpotlight } from '@/components/settings/provider/ProviderSpotlight'
 import { useProviderImport } from '@/hooks/useProviderImport'
 import { useIsSmallScreen } from '@/hooks/useScreenChange'
@@ -55,6 +56,7 @@ export function RouteComponent() {
   }, [providers])
 
   const [newProviderModalOpened, setNewProviderModalOpened] = useState(false)
+  const [quickApiOpened, setQuickApiOpened] = useState(false)
 
   const handleOpenSpotlight = useCallback(() => {
     providerSpotlight.open()
@@ -147,7 +149,7 @@ export function RouteComponent() {
   return (
     <Flex h="100%" w="100%">
       {(!isSmallScreen || routerState.location.pathname === '/settings/provider') && (
-        <ProviderList providers={providers} onAddProvider={handleOpenSpotlight} />
+        <ProviderList providers={providers} onAddProvider={handleOpenSpotlight} onQuickConnect={() => setQuickApiOpened(true)} />
       )}
       {!(isSmallScreen && routerState.location.pathname === '/settings/provider') && (
         <Box flex="1 1 75%" p="md" className="overflow-auto">
@@ -156,6 +158,7 @@ export function RouteComponent() {
       )}
 
       <AddProviderModal opened={newProviderModalOpened} onClose={() => setNewProviderModalOpened(false)} />
+      <QuickApiPresetModal opened={quickApiOpened} onClose={() => setQuickApiOpened(false)} />
 
       <ImportProviderModal
         opened={importModalOpened}

@@ -1,7 +1,7 @@
 import { Button, Flex, Image, Indicator, ScrollArea, Stack, Text } from '@mantine/core'
 import { AutomationAdjacentAttr, TestId } from '@shared/automation/testids'
 import { ModelProviderEnum, type ProviderBaseInfo } from '@shared/types'
-import { IconChevronRight, IconPlus } from '@tabler/icons-react'
+import { IconChevronRight, IconPlus, IconKey } from '@tabler/icons-react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import clsx from 'clsx'
 import { useMemo } from 'react'
@@ -16,9 +16,10 @@ import { FEATURED_PROVIDER_IDS, ProviderIconImage } from './providerIcons'
 interface ProviderListProps {
   providers: ProviderBaseInfo[]
   onAddProvider: () => void
+  onQuickConnect: () => void
 }
 
-export function ProviderList({ providers, onAddProvider }: ProviderListProps) {
+export function ProviderList({ providers, onAddProvider, onQuickConnect }: ProviderListProps) {
   const { t } = useTranslation()
   const isSmallScreen = useIsSmallScreen()
   const routerState = useRouterState()
@@ -121,6 +122,9 @@ export function ProviderList({ providers, onAddProvider }: ProviderListProps) {
         </Stack>
       </ScrollArea>
       <Stack gap="xs" mx="md" my="sm">
+        <Button variant="filled" leftSection={<ScalableIcon icon={IconKey} />} onClick={onQuickConnect}>
+          {t("Conexión rápida de APIs")}
+        </Button>
         <Button
           data-testid={TestId.settings.addProvider}
           variant="outline"

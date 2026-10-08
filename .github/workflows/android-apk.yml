@@ -6,12 +6,14 @@ on:
     branches:
       - feat/community-plus-bootstrap-20261007
       - feat/free-web-search-20261008
+      - feat/quick-api-presets-20261008
     paths:
       - 'src/**'
       - 'packages/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'capacitor.config.ts'
+      - 'scripts/configure-android-local-routing*'
       - '.github/workflows/android-apk.yml'
 
 permissions:
@@ -59,6 +61,15 @@ jobs:
       - name: Verify personal free web-search tools
         run: pnpm exec vitest run src/renderer/packages/web-search/auto-free.test.ts src/renderer/packages/web-search/duckduckgo.test.ts src/renderer/packages/web-search/index.test.ts src/renderer/packages/web-search/parse-link-consistency.test.ts src/shared/services/native-web-search.test.ts packages/chatbox-core/src/domain/settings/settings-migrations.test.ts
 
+      - name: Verify quick API provider presets
+        run: pnpm exec vitest run src/renderer/components/settings/provider/quick-api-presets.test.ts
+
+      - name: Verify Android local networking policy
+        run: node --test scripts/configure-android-local-routing.test.mjs
+
+      - name: Verify local 9router catalog bridge
+        run: pnpm exec vitest run src/renderer/components/settings/provider/quick-api-router-probe.test.ts src/renderer/utils/request.test.ts
+
       - name: Build mobile renderer
         shell: bash
         run: pnpm exec cross-env CHATBOX_BUILD_TARGET=mobile_app CHATBOX_BUILD_PLATFORM=android pnpm run build:renderer
@@ -68,6 +79,9 @@ jobs:
 
       - name: Sync Capacitor
         run: pnpm exec cap sync android
+
+      - name: Enable safe loopback HTTP for 9router-go
+        run: node scripts/configure-android-local-routing.mjs
 
       - name: Build installable debug APK
         working-directory: android
