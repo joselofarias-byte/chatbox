@@ -5,7 +5,7 @@ Decisión del proyecto: nuestro fork personal NO es una edición lite. Se mantie
 ## Primer cambio de esta rama
 
 - Nuevo buscador Free automatic: SearXNG configurado, Bing y DuckDuckGo; cambia automáticamente si falla o devuelve cero resultados.
-- Búsqueda gratuita predeterminada en instalaciones nuevas. Las preferencias previas del usuario se respetan; el modo Chatbox AI sigue disponible bajo selección explícita.
+- Búsqueda gratuita predeterminada en instalaciones nuevas, incluido el cliente React Native (Bing y respaldo DuckDuckGo). Las preferencias previas del usuario se respetan; el modo Chatbox AI sigue disponible bajo selección explícita.
 - Lector de páginas públicas basado en Mozilla Readability local, sin créditos Chatbox.
 - Se conserva el buscador de pago, Tavily y otros proveedores; no se elimina ninguna funcionalidad.
 - Caché separado por proveedor/instancia SearXNG. Pruebas agregadas de errores, fallback, URL y extracción.

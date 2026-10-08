@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { formatNativeWebSearchContext, hasNativeWebSearchConfiguration, searchNativeWeb } from './native-web-search'
+import { defaultNativeWebSearchSettings, formatNativeWebSearchContext, hasNativeWebSearchConfiguration, searchNativeWeb } from './native-web-search'
 
 function mockFetchResponse(body: unknown, ok = true, status = 200) {
   return vi.fn(async () => ({
@@ -10,6 +10,11 @@ function mockFetchResponse(body: unknown, ok = true, status = 200) {
 }
 
 describe('native web search', () => {
+  it('defaults to free web search on new native installations', () => {
+    expect(defaultNativeWebSearchSettings.provider).toBe('auto-free')
+    expect(hasNativeWebSearchConfiguration({ provider: 'auto-free', apiKey: '' })).toBe(true)
+  })
+
   it('detects configuration presence per provider', () => {
     expect(hasNativeWebSearchConfiguration({ provider: 'tavily', apiKey: '' })).toBe(false)
     expect(hasNativeWebSearchConfiguration({ provider: 'tavily', apiKey: '  ' })).toBe(false)
@@ -63,6 +68,17 @@ describe('native web search', () => {
       { title: 'First & Best', link: 'https://one.test/page?a=1&b=2', snippet: 'Snippet one' },
       { title: 'Second result', link: 'https://two.test', snippet: 'Snippet two' },
     ])
+  })
+
+  it('falls back to free DuckDuckGo when Bing serves an empty shell', async () => {
+    const fetchFn = vi.fn()
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => '<html>JS required</html>' })
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () =>
+        '<div class="result"><a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fguide">Guide</a></div>',
+      }) as unknown as typeof fetch
+    const results = await searchNativeWeb('guide', { provider: 'auto-free', fetchFn })
+    expect(results).toEqual([{ title: 'Guide', link: 'https://example.com/guide', snippet: '' }])
+    expect((fetchFn as unknown as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(2)
   })
 
   it('searches through the tavily-compatible endpoint with an injectable host', async () => {
