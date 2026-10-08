@@ -52,11 +52,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify provider registry
+        run: pnpm exec vitest run src/shared/providers/index.contract.test.ts
+
       - name: Build mobile renderer
         shell: bash
-        run: |
-          pnpm exec cross-env CHATBOX_BUILD_TARGET=mobile_app CHATBOX_BUILD_PLATFORM=android pnpm run build:renderer
-          pnpm run delete-sourcemaps
+        run: pnpm exec cross-env CHATBOX_BUILD_TARGET=mobile_app CHATBOX_BUILD_PLATFORM=android pnpm run build:renderer
 
       - name: Generate Android project
         run: pnpm exec cap add android
