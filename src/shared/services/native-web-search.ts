@@ -1,9 +1,9 @@
 /**
  * Native-safe web search for the RN mobile shell.
  *
- * Uses JSON HTTP APIs only (no DOMParser/HTML scraping), so it runs on React
- * Native `fetch`. Tavily is the first provider; `apiHost` is injectable so the
- * Android emulator can verify against a local mock without credentials.
+ * Uses fetch and small HTML extractors without DOMParser, so it works in
+ * React Native. Paid providers remain available, but new user settings prefer
+ * automatic free search. API host injection remains available for Tavily tests.
  */
 
 export interface NativeWebSearchResultItem {
@@ -13,9 +13,10 @@ export interface NativeWebSearchResultItem {
 }
 
 /** Same provider set the renderer's Web Search settings expose. */
-export type NativeWebSearchProvider = 'build-in' | 'bing' | 'tavily' | 'bocha' | 'querit'
+export type NativeWebSearchProvider = 'auto-free' | 'build-in' | 'bing' | 'tavily' | 'bocha' | 'querit'
 
 export const nativeWebSearchProviderOptions: Array<{ id: NativeWebSearchProvider; label: string }> = [
+  { id: 'auto-free', label: 'Free automatic' },
   { id: 'build-in', label: 'Chatbox AI' },
   { id: 'bing', label: 'Bing Search' },
   { id: 'tavily', label: 'Tavily' },
@@ -30,11 +31,10 @@ export interface NativeWebSearchSettings {
   apiHost: string
 }
 
-// Web parity (defaults.ts extension.webSearch.provider): the Chatbox search API
-// is the default. Bare Bing scraping is unreliable from native HTTP clients --
-// without a real browser UA/cookies Bing serves a JS shell with zero results.
+// Match the renderer's free-first default. Bare Bing scraping is unreliable
+// from native HTTP clients, so automatically fall back to DuckDuckGo.
 export const defaultNativeWebSearchSettings: NativeWebSearchSettings = {
-  provider: 'build-in',
+  provider: 'auto-free',
   apiKey: '',
   apiHost: '',
 }
@@ -100,6 +100,7 @@ export async function searchNativeWeb(
   options: NativeWebSearchOptions
 ): Promise<NativeWebSearchResultItem[]> {
   const provider = options.provider ?? 'tavily'
+  if (provider === 'auto-free') return searchNativeFree(query, options)
   if (provider === 'bing') return searchNativeBing(query, options)
   if (provider === 'build-in') return searchNativeChatbox(query, options)
   if (provider === 'bocha') return searchNativeBocha(query, options)
@@ -318,6 +319,80 @@ async function searchNativeChatbox(
     link: link.url ?? '',
     snippet: link.content ?? '',
   }))
+}
+
+/**
+ * Free-first RN fallback. Neither engine asks Chatbox for an authenticated
+ * search, and an empty Bing JS shell is not treated as a successful result.
+ */
+async function searchNativeFree(
+  query: string,
+  options: NativeWebSearchOptions
+): Promise<NativeWebSearchResultItem[]> {
+  let lastError: unknown
+  try {
+    const bing = await searchNativeBing(query, options)
+    if (bing.length) return bing
+  } catch (error) {
+    if (options.signal?.aborted) throw error
+    lastError = error
+  }
+
+  try {
+    const duckduckgo = await searchNativeDuckDuckGo(query, options)
+    if (duckduckgo.length) return duckduckgo
+  } catch (error) {
+    if (options.signal?.aborted) throw error
+    lastError = error
+  }
+
+  if (lastError) throw new Error('Native free search failed for all providers', { cause: lastError })
+  throw new Error('Native free search returned no results')
+}
+
+async function searchNativeDuckDuckGo(
+  query: string,
+  options: NativeWebSearchOptions
+): Promise<NativeWebSearchResultItem[]> {
+  const fetchFn = options.fetchFn ?? fetch
+  const maxResults = options.maxResults ?? DEFAULT_MAX_RESULTS
+  const response = await fetchFn('https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query), {
+    method: 'GET',
+    headers: {
+      Accept: 'text/html,application/xhtml+xml',
+      'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/125.0.0.0 Mobile Safari/537.36',
+    },
+    signal: options.signal,
+  })
+  if (!response.ok) throw new Error('DuckDuckGo search failed with status ' + response.status)
+  return extractNativeDuckDuckGoResults(await response.text(), maxResults)
+}
+
+export function extractNativeDuckDuckGoResults(
+  html: string,
+  maxResults = DEFAULT_MAX_RESULTS
+): NativeWebSearchResultItem[] {
+  const items: NativeWebSearchResultItem[] = []
+  const anchors = /<a\b([^>]*\bclass=["'][^"']*\bresult__a\b[^"']*["'][^>]*)>([\s\S]*?)<\/a>/gi
+  for (const match of html.matchAll(anchors)) {
+    const rawHref = /\bhref=["']([^"']+)["']/.exec(match[1])?.[1]
+    if (!rawHref) continue
+    let url: URL
+    try {
+      url = new URL(decodeHtmlEntities(rawHref), 'https://duckduckgo.com')
+      const ddgHost = url.hostname === 'duckduckgo.com' || url.hostname.endsWith('.duckduckgo.com')
+      const destination = ddgHost ? url.searchParams.get('uddg') : null
+      if (destination) url = new URL(destination)
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') continue
+    } catch {
+      continue
+    }
+    const title = decodeHtmlEntities(stripTags(match[2])).trim()
+    if (!title) continue
+    items.push({ title, link: url.toString(), snippet: '' })
+    if (items.length >= maxResults) break
+  }
+  return items
 }
 
 /**

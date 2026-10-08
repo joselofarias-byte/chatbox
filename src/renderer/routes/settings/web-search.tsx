@@ -120,7 +120,7 @@ export function RouteComponent() {
 
       <AdaptiveSelect
         comboboxProps={{ withinPortal: true, withArrow: true }}
-        data={WEB_SEARCH_PROVIDERS.map((p) => ({ value: p.value, label: p.label }))}
+        data={WEB_SEARCH_PROVIDERS.map((p) => ({ value: p.value, label: t(p.label) }))}
         value={extension.webSearch.provider}
         onChange={(e) =>
           e &&
@@ -161,6 +161,11 @@ export function RouteComponent() {
           ))
         })()}
       </Stack>
+      {extension.webSearch.provider === 'auto-free' && (
+        <Text size="xs" c="chatbox-gray">
+          {t('Free search automatically tries your SearXNG instance, Bing, and DuckDuckGo. No Chatbox search credits are used.')}
+        </Text>
+      )}
       {extension.webSearch.provider === 'build-in' && (
         <Text size="xs" c="chatbox-gray">
           {t('Chatbox Search is a paid feature with advanced capabilities and better performance.')}
@@ -173,7 +178,7 @@ export function RouteComponent() {
           )}
         </Text>
       )}
-      {extension.webSearch.provider === 'searxng' && (
+      {(extension.webSearch.provider === 'searxng' || extension.webSearch.provider === 'auto-free') && (
         <Stack gap="xs">
           <Text fw="600">{t('SearXNG Instance URL')}</Text>
           <Flex align="center" gap="xs">

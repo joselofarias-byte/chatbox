@@ -31,6 +31,7 @@ export function getWebSearchConfigurationIssue(
     case 'searxng':
       return configuration.searxngBaseUrl?.trim() ? null : 'searxng-instance'
     case 'bing':
+    case 'auto-free':
       return null
   }
 }

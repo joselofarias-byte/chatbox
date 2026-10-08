@@ -91,6 +91,12 @@ describe('webSearchExecutor', () => {
     expect(tavilyResult.searchResults[0].title).toBe('Tavily Result')
   })
 
+  it('uses the free search route without a paid Chatbox provider', async () => {
+    mockGetExtensionSettings.mockReturnValue({ webSearch: { provider: 'auto-free' } } as ReturnType<typeof getExtensionSettings>)
+    const result = await webSearchExecutor({ query: 'anonymous free search test' }, {})
+    expect(result.searchResults[0]?.title).toBe('Bing Result')
+  })
+
   it('returns cached results for same provider and query', async () => {
     mockGetExtensionSettings.mockReturnValue({
       webSearch: { provider: 'bing', tavilyApiKey: '' },

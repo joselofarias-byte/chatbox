@@ -1,4 +1,6 @@
 {
+  "Free automatic": "Automática gratuita",
+  "Free search automatically tries your SearXNG instance, Bing, and DuckDuckGo. No Chatbox search credits are used.": "La búsqueda gratuita prueba tu instancia SearXNG, Bing y DuckDuckGo automáticamente. No consume créditos de búsqueda de Chatbox.",
   "You can also adjust Max Output Tokens in <settings>Conversation Settings</settings>.": "También puedes ajustar los tokens máximos de salida en <settings>Configuración de la conversación</settings>.",
   "The response was interrupted by the provider’s content safety filter. Try rephrasing your request.": "El filtro de seguridad de contenido del proveedor interrumpió la respuesta. Intenta reformular tu solicitud.",
   "The model reached the length limit for this response, so the content may be incomplete. Send “Continue” to ask it to keep going.": "El modelo alcanzó el límite de longitud de esta respuesta, por lo que el contenido puede estar incompleto. Envía «Continúa» para pedirle que siga.",
