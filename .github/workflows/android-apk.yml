@@ -67,6 +67,9 @@ jobs:
       - name: Verify Android local networking policy
         run: node --test scripts/configure-android-local-routing.test.mjs
 
+      - name: Verify local 9router catalog bridge
+        run: pnpm exec vitest run src/renderer/components/settings/provider/quick-api-router-probe.test.ts src/renderer/utils/request.test.ts
+
       - name: Build mobile renderer
         shell: bash
         run: pnpm exec cross-env CHATBOX_BUILD_TARGET=mobile_app CHATBOX_BUILD_PLATFORM=android pnpm run build:renderer

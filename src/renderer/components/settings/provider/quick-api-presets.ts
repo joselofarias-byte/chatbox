@@ -79,6 +79,7 @@ export function buildQuickApiProviderPatch(params: {
   preset: QuickApiPreset
   apiKey: string
   modelId?: string
+  discoveredModels?: readonly string[]
   providers: Settings['providers'] | undefined
   customProviders: Settings['customProviders'] | undefined
 }): Partial<Settings> {
@@ -97,14 +98,22 @@ export function buildQuickApiProviderPatch(params: {
     throw new Error('Ya existe otro proveedor usando este identificador.')
   }
 
+  // Only explicit local router discovery may extend the available model list.
+  // Keep existing model metadata and remove duplicate IDs before saving.
+  const additional = [modelId, ...(preset.id === '9router-local' ? params.discoveredModels ?? [] : [])]
+    .filter((id): id is string => typeof id === 'string' && id.length > 0 && id.length <= 256)
+  const existingIds = new Set((current.models ?? []).map((model) => model.modelId))
+  const appendedModels = additional.filter((id) => {
+    if (existingIds.has(id)) return false
+    existingIds.add(id)
+    return true
+  }).map((id) => ({ modelId: id }))
+
   const nextSettings = {
     ...current,
     apiKey,
     ...(preset.apiHost ? { apiHost: preset.apiHost } : {}),
-    ...(custom ? { models: [
-      ...(current.models ?? []).filter((m) => m.modelId !== modelId),
-      { modelId },
-    ] } : {}),
+    ...(custom ? { models: [...(current.models ?? []), ...appendedModels] } : {}),
   }
   if (!custom) return { providers: { ...providers, [preset.providerId]: nextSettings } }
 

@@ -61,6 +61,26 @@ describe('quick API provider presets', () => {
     expect(patch.providers?.groq?.models?.[0].modelId).toBe('some-model')
   })
 
+  it('imports only local router model IDs without erasing existing models', () => {
+    const preset = getPreset('9router-local')
+    const original = { modelId: 'special-model', nickname: 'My configured model' }
+    const patch = buildQuickApiProviderPatch({
+      preset,
+      apiKey: 'my-router-key',
+      providers: {
+        [preset.providerId]: { models: [original] },
+      },
+      customProviders: [],
+      discoveredModels: ['special-model', 'free-best', 'unorouter-personal/qwen3.8-27b:free'],
+    })
+    expect(patch.providers?.[preset.providerId]?.models).toEqual([
+      original,
+      { modelId: 'free-best' },
+      { modelId: 'unorouter-personal/qwen3.8-27b:free' },
+    ])
+    expect(patch.providers?.[preset.providerId]?.apiKey).toBe('my-router-key')
+  })
+
   it('refuses blank keys and collisions with different custom providers', () => {
     expect(() => buildQuickApiProviderPatch({
       preset: getPreset('openrouter'),
