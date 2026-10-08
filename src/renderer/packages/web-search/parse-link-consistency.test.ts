@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PROVIDERS_WITH_PARSE_LINK } from '@/packages/web-search'
+import { AutoFreeSearch } from '@/packages/web-search/auto-free'
 import { BingSearch } from '@/packages/web-search/bing'
 import { BingNewsSearch } from '@/packages/web-search/bing-news'
 import { BochaSearch } from '@/packages/web-search/bocha'
@@ -27,6 +28,7 @@ describe('parse_link capability consistency', () => {
   // Map of provider id (matching the union type used in extension settings)
   // to a freshly constructed instance with stub credentials.
   const providers: { id: string; instance: { supportsParseLink: boolean } }[] = [
+    { id: 'auto-free', instance: new AutoFreeSearch([new BingSearch()]) },
     { id: 'build-in', instance: new ChatboxSearch('stub-license') },
     { id: 'bing', instance: new BingSearch() },
     { id: 'bing-news', instance: new BingNewsSearch() },

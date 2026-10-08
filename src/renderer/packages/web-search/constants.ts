@@ -1,4 +1,5 @@
 export const WEB_SEARCH_PROVIDERS = [
+  { value: 'auto-free', label: 'Free automatic' },
   { value: 'build-in', label: 'Chatbox AI' },
   { value: 'bing', label: 'Bing Search' },
   { value: 'tavily', label: 'Tavily' },

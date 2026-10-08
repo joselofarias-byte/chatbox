@@ -5,6 +5,8 @@ import platform from '@/platform'
 import { getExtensionSettings, getLanguage, getLicenseKey } from '@/stores/settingActions'
 import { ChatboxAIAPIError } from '../../../shared/models/errors'
 import type WebSearch from './base'
+import { AutoFreeSearch } from './auto-free'
+import { DuckDuckGoSearch } from './duckduckgo'
 import { BingSearch } from './bing'
 import { BingNewsSearch } from './bing-news'
 import { BochaSearch } from './bocha'
@@ -25,6 +27,14 @@ function getSearchProviders() {
   const language = getLanguage()
 
   switch (provider) {
+    case 'auto-free': {
+      const freeProviders: WebSearch[] = []
+      const searxngUrl = normalizeSearxngBaseUrl(settings.webSearch.searxngBaseUrl ?? '')
+      if (searxngUrl) freeProviders.push(new SearxngSearch(searxngUrl))
+      freeProviders.push(new BingSearch(), new DuckDuckGoSearch())
+      selectedProviders.push(new AutoFreeSearch(freeProviders))
+      break
+    }
     case 'build-in':
       if (!licenseKey) {
         throw ChatboxAIAPIError.fromCodeName(
@@ -135,7 +145,9 @@ export const webSearchExecutor = async (
   const webSearch = getExtensionSettings().webSearch
   const provider = webSearch.provider
   const cacheIdentity =
-    provider === 'searxng' ? `${provider}:${normalizeSearxngBaseUrl(webSearch.searxngBaseUrl ?? '')}` : provider
+    provider === 'searxng' || provider === 'auto-free'
+      ? `${provider}:${normalizeSearxngBaseUrl(webSearch.searxngBaseUrl ?? '')}`
+      : provider
   const searchResults = await cachified({
     cache,
     key: `search-context:${cacheIdentity}:${query}`,
@@ -149,7 +161,7 @@ export const webSearchExecutor = async (
  * Single source of truth: which configured providers offer the parse_link tool.
  * Keep in sync with the provider classes' `supportsParseLink` flags.
  */
-export const PROVIDERS_WITH_PARSE_LINK: ReadonlySet<string> = new Set(['build-in', 'tavily'])
+export const PROVIDERS_WITH_PARSE_LINK: ReadonlySet<string> = new Set(['auto-free', 'build-in', 'tavily'])
 
 /**
  * Returns the first configured search provider that supports parseLink.

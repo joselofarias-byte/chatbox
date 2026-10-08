@@ -1,4 +1,6 @@
 {
+  "Free automatic": "Free automatic",
+  "Free search automatically tries your SearXNG instance, Bing, and DuckDuckGo. No Chatbox search credits are used.": "Free search automatically tries your SearXNG instance, Bing, and DuckDuckGo. No Chatbox search credits are used.",
   "You can also adjust Max Output Tokens in <settings>Conversation Settings</settings>.": "You can also adjust Max Output Tokens in <settings>Conversation Settings</settings>.",
   "The response was interrupted by the provider’s content safety filter. Try rephrasing your request.": "The response was interrupted by the provider’s content safety filter. Try rephrasing your request.",
   "The model reached the length limit for this response, so the content may be incomplete. Send “Continue” to ask it to keep going.": "The model reached the length limit for this response, so the content may be incomplete. Send “Continue” to ask it to keep going.",

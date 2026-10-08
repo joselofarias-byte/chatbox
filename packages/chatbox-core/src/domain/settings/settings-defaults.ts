@@ -77,7 +77,7 @@ export function createDefaultSettings(): Settings {
     },
     extension: {
       webSearch: {
-        provider: 'build-in',
+        provider: 'auto-free',
         tavilyApiKey: '',
         bochaApiKey: '',
         queritApiKey: '',
