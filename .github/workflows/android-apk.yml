@@ -52,14 +52,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Android project
+      - name: Build mobile renderer
         shell: bash
         run: |
-          mkdir -p release/app/dist/renderer
-          pnpm exec cap add android
+          pnpm exec cross-env CHATBOX_BUILD_TARGET=mobile_app CHATBOX_BUILD_PLATFORM=android pnpm run build:renderer
+          pnpm run delete-sourcemaps
 
-      - name: Build mobile renderer and sync Capacitor
-        run: pnpm run mobile:sync:android
+      - name: Generate Android project
+        run: pnpm exec cap add android
+
+      - name: Sync Capacitor
+        run: pnpm exec cap sync android
 
       - name: Build installable debug APK
         working-directory: android
